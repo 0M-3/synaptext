@@ -1,9 +1,23 @@
+import re
 import fitz
 import spacy
 from collections import Counter
-from keybert import KeyBERT
-import csv
-import re
+
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
+
+def extract_chunks(pdf_path):
+    loader = PyPDFLoader(pdf_path)
+    doc = loader.load()
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=0)
+    chunks=[]
+    for docer in doc:
+        texts = text_splitter.split_text(docer.page_content)
+        chunks.extend([
+            Document(page_content=text, metadata=docer.metadata) for text in texts
+        ])
+    return chunks
 
 def is_valid_phrase(phrase_text):
     # 1. Remove phrases that are just figure references or coordinates like (a), (b), (s)
@@ -57,7 +71,7 @@ def extract_significant_terms(pdf_path):
     return [propn_counts, phrase_counts]
 
 
-    print(f"Success! Analysis saved to db")
+    print("Success! Analysis saved to db")
 
 if __name__ == "__main__":
     extract_significant_terms("bioengineering-10-01348.pdf")
