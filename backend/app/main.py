@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
-from sqlalchemy import Session
+from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import crud, models, schemas, process
