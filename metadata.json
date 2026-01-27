@@ -1,0 +1,6 @@
+
+{
+  "name": "SynapText Document Intelligence",
+  "description": "Full-stack document intelligence platform for PDF ingestion (PyMuPDF), semantic analysis (spaCy/Gemini), and bipartite graph mapping (NetworkX/D3.js).",
+  "requestFramePermissions": []
+}
