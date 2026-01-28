@@ -22,3 +22,26 @@ def create_chunk(db:Session, chunk: schemas.ChunkCreate, source_id: int):
     db.commit()
     db.refresh(db_chunk)
     return db_chunk
+
+def create_junction(db:Session, junction: schemas.JunctionCreate):
+    db_junction = models.Junction(**junction.model_dump())
+    db.add(db_junction)
+    db.commit()
+    db.refresh(db_junction)
+    return db_junction
+
+def get_chunks_by_source(db: Session, source_id: int):
+    return db.query(models.Chunk).filter(models.Chunk.SOURCE_ID == source_id).all()
+
+def get_keywords_by_source(db: Session, source_id: int):
+    return db.query(models.Keyword).filter(models.Keyword.SOURCE_ID == source_id).all()
+
+def create_junctions_by_source(db:Session, source_id: int):
+    chunks = get_chunks_by_source(db=db, source_id = source_id)
+    keywords = get_keywords_by_source(db=db, source_id = source_id)
+    for keyword in keywords:
+        for chunk in chunks:
+            if keyword.KEYWORD in chunk.CHUNK_TEXT:
+                junction_data = schemas.JunctionCreate(SOURCE_ID = source_id, KEYWORD_ID = keyword.ID, CHUNK_ID = chunk.ID)
+                create_junction(db = db, junction = junction_data)
+

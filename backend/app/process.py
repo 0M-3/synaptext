@@ -6,11 +6,22 @@ from collections import Counter
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
+from langchain_text_splitters import NLTKTextSplitter
+
+def extract_nlp_chunks(pdf_path):
+    loader = PyPDFLoader(pdf_path)
+    doc = loader.load()
+    
+    # NLTK understands sentence structures much better than basic regex
+    text_splitter = NLTKTextSplitter(chunk_size=1000)
+    
+    chunks = text_splitter.split_documents(doc)
+    return chunks
 
 def extract_chunks(pdf_path):
     loader = PyPDFLoader(pdf_path)
     doc = loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=0)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     chunks=[]
     for docer in doc:
         texts = text_splitter.split_text(docer.page_content)
