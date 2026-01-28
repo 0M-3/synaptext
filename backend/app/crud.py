@@ -36,6 +36,9 @@ def get_chunks_by_source(db: Session, source_id: int):
 def get_keywords_by_source(db: Session, source_id: int):
     return db.query(models.Keyword).filter(models.Keyword.SOURCE_ID == source_id).all()
 
+def get_junctions_by_keyword(db:Session, keyword_id: int, source_id: int):
+    return db.query(models.Junction).filter(models.Junction.KEYWORD_ID == keyword_id and models.Junction.SOURCE_ID == source_id).all()
+
 def create_junctions_by_source(db:Session, source_id: int):
     chunks = get_chunks_by_source(db=db, source_id = source_id)
     keywords = get_keywords_by_source(db=db, source_id = source_id)
@@ -44,4 +47,3 @@ def create_junctions_by_source(db:Session, source_id: int):
             if keyword.KEYWORD in chunk.CHUNK_TEXT:
                 junction_data = schemas.JunctionCreate(SOURCE_ID = source_id, KEYWORD_ID = keyword.ID, CHUNK_ID = chunk.ID)
                 create_junction(db = db, junction = junction_data)
-
