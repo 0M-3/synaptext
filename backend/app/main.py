@@ -108,8 +108,19 @@ def get_graph_data(source_id: int, db: Session = Depends(get_db)):
 
     # Convert the database objects to Pydantic schemas
     chunks = [schemas.Chunk.from_orm(chunk) for chunk in db_chunks]
-    keywords = [schemas.Keyword.from_orm(keyword) for keyword in db_keywords]
+    # keywords = [schemas.Keyword.from_orm(keyword) for keyword in db_keywords]
+    keywords = []
+    for kw in db_keywords:
+        # 1. Convert DB object to Pydantic
+        kw_schema = schemas.KeywordwithIDs.from_orm(kw)
+        kw_junctions = crud.get_junctions_by_keyword(db=db, source_id=source_id, keyword_id = kw.ID)
+        # 2. Extract IDs from the relationship (assuming 'chunks' relationship exists on Keyword model)
+        # If your DB model has a relationship: kw.chunks
+        kw_schema.CHUNK_IDS = [c.CHUNK_ID for c in kw_junctions] 
+        
+        keywords.append(kw_schema)
 
+    #TODO: Insert ChunkIDs into the keywords returned.
     # Return the graph data in a format that the frontend can use
     return {"chunks": chunks, "keywords": keywords}
 

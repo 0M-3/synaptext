@@ -44,7 +44,7 @@ export function buildGraph(
     });
 
     // Create links
-    entity.chunkIds.forEach((chunkId) => {
+    keyword.chunkIds.forEach((chunkId) => {
       // Ensure chunk actually exists
       if (chunks.some((c) => c.id === chunkId)) {
         links.push({

@@ -15,6 +15,9 @@ class Keyword(KeywordBase):
     ETL_CREATED_TIME: datetime
     model_config = ConfigDict(from_attributes=True)
 
+class KeywordwithIDs(Keyword):
+    CHUNK_IDS: list[int] = []
+
 class SourceBase(BaseModel):
     SOURCE_NAME: str
 
