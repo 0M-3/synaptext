@@ -36,10 +36,11 @@ export interface Entity {
 }
 
 export interface Keyword {
-  KEYWORD: string;
-  INSTANCES: number;
-  ID: string;
-  SOURCE_ID: string;
+  keyword: string;
+  instances: number;
+  id: string;
+  source_id: string;
+  chunkids: string[];
 }
 
 export interface GraphData {

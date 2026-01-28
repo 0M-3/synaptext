@@ -1,6 +1,5 @@
 import {
   Chunk,
-  Entity,
   Keyword,
   GraphData,
   NodeType,
@@ -8,11 +7,11 @@ import {
   GraphLink,
 } from "../types";
 
-export function buildGraph(
-  chunks: Chunk[],
-  entities: Entity[],
-  keywords: Keyword[],
-): GraphData {
+export function buildGraph(chunks: Chunk[], keywords: Keyword[]): GraphData {
+  if (!Array.isArray(chunks) || !Array.isArray(keywords)) {
+    console.error("buildGraph received invalid data:", { chunks, keywords });
+    return { nodes: [], links: [] };
+  }
   const nodes: GraphNode[] = [];
   const links: GraphLink[] = [];
 
@@ -30,21 +29,21 @@ export function buildGraph(
 
   // Add Topic Nodes
   keywords.forEach((keyword) => {
-    const topicId = `topic-${keyword.KEYWORD.toLowerCase().replace(/\s+/g, "-")}`;
+    const topicId = `topic-${keyword.keyword.toLowerCase().replace(/\s+/g, "-")}`;
 
     // Calculate importance based on number of chunks it connects to (Degree Centrality)
-    const weight = 5 + keyword.INSTANCES * 2;
+    const weight = 5 + keyword.instances * 2;
 
     nodes.push({
       id: topicId,
-      label: keyword.KEYWORD,
+      label: keyword.keyword,
       type: NodeType.TOPIC,
-      content: keyword.KEYWORD,
+      content: keyword.keyword,
       weight: weight,
     });
 
     // Create links
-    keyword.chunkIds.forEach((chunkId) => {
+    keyword.chunkids.forEach((chunkId) => {
       // Ensure chunk actually exists
       if (chunks.some((c) => c.id === chunkId)) {
         links.push({

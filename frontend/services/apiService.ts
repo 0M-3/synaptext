@@ -34,9 +34,20 @@ export async function uploadPdf(file: File): Promise<BackendResponse> {
 
   const graphData = await graphResponse.json();
 
+  // Fix: Map API's SCREAMING_CASE to frontend's camelCase and add index to chunks
   return {
     ...uploadData,
-    chunks: graphData.chunks,
-    keywords: graphData.keywords,
+    chunks: graphData.chunks.map((chunk: any, index: number) => ({
+      id: String(chunk.ID),
+      text: chunk.CHUNK_TEXT,
+      index: index,
+    })),
+    keywords: graphData.keywords.map((kw: any) => ({
+      keyword: kw.KEYWORD,
+      instances: kw.INSTANCES,
+      id: String(kw.ID),
+      source_id: String(kw.SOURCE_ID),
+      chunkids: kw.CHUNK_IDS.map((id: number) => String(id)),
+    })),
   };
 }
