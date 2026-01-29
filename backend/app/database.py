@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SQLALCHEMY_DATABASE_URL = os.getenv('POSTGRES_DATABASE_URL')
+SQLALCHEMY_DATABASE_URL = os.getenv('BACKEND_DATABASE_URL')
 
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 #

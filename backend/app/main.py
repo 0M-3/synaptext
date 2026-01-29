@@ -1,3 +1,4 @@
+from .models import Base  # Add this import
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,24 +8,7 @@ from .database import engine, get_db
 import shutil
 import os
 
-# Automatically create tables on application startup.
-models.Base.metadata.create_all(bind=engine)
-
-app = FastAPI (
-    title = "SynapText Backend API",
-    description = "SynaText Backend API",
-    version = "0.0.1",
-)
-
-origins = [
-    "http://localhost:3000"
-]
-
-
-
-
-# Automatically create tables on application startup.
-models.Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI (
     title = "SynapText Backend API",
