@@ -1,9 +1,8 @@
 
 import React, { useState, useCallback } from 'react';
 import { DocumentState, GraphNode, Chunk, GraphData } from './types';
-import { semanticChunking, extractEntitiesFromChunks } from './services/geminiService';
+import { uploadPdf } from './services/apiService';
 import { buildGraph } from './services/graphUtils';
-import { extractTextFromPdf } from './services/pdfService';
 import GraphView from './components/GraphView';
 import ReaderPanel from './components/ReaderPanel';
 
@@ -21,39 +20,19 @@ const App: React.FC = () => {
     setIsProcessing(true);
     setError(null);
     setSelectedNodeId(null);
-    setProcessStep('Extracting PDF Content...');
+    setProcessStep('Uploading and processing file...');
 
     try {
-      let text = '';
-      if (file.type === 'application/pdf') {
-        text = await extractTextFromPdf(file);
-      } else {
-        text = await file.text();
-      }
-
-      if (!text.trim()) {
-        throw new Error("The document appears to be empty or unreadable.");
-      }
+      const backendResponse = await uploadPdf(file);
       
-      setProcessStep('Performing Semantic Chunking...');
-      const rawChunks = await semanticChunking(text);
-      const chunks: Chunk[] = rawChunks.map((t, i) => ({
-        id: `c-${Math.random().toString(36).substr(2, 9)}`,
-        text: t,
-        index: i
-      }));
-
-      setProcessStep('Entity Resolution & Linguistic Filtering...');
-      const entities = await extractEntitiesFromChunks(chunks);
-
-      setProcessStep('Calculating Graph Centrality...');
-      const graph = buildGraph(chunks, entities);
+      setProcessStep('Building graph...');
+      const graph = buildGraph(backendResponse.chunks, backendResponse.keywords);
 
       setDocState({
-        id: Math.random().toString(36).substr(2, 9),
-        name: file.name,
-        content: text,
-        chunks,
+        id: backendResponse.source_id.toString(),
+        name: backendResponse.filename,
+        content: '', // Not needed anymore
+        chunks: backendResponse.chunks,
         graph,
         isProcessing: false
       });

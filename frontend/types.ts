@@ -1,9 +1,8 @@
-
-import type { SimulationNodeDatum, SimulationLinkDatum } from 'd3';
+import type { SimulationNodeDatum, SimulationLinkDatum } from "d3";
 
 export enum NodeType {
-  CHUNK = 'CHUNK',
-  TOPIC = 'TOPIC'
+  CHUNK = "CHUNK",
+  TOPIC = "TOPIC",
 }
 
 // Fix: Inherit from SimulationNodeDatum using imported type to ensure x, y, and other simulation properties are available
@@ -34,6 +33,14 @@ export interface Entity {
   description: string;
   type: string;
   chunkIds: string[];
+}
+
+export interface Keyword {
+  keyword: string;
+  instances: number;
+  id: string;
+  source_id: string;
+  chunkids: string[];
 }
 
 export interface GraphData {
