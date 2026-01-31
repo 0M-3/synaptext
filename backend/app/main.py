@@ -1,9 +1,12 @@
 from .models import Base  # Add this import
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
+import io
+import zipfile
 
-from . import crud, models, schemas, process
+from . import crud, models, schemas, process, summarize
 from .database import engine, get_db
 import shutil
 import os
@@ -104,8 +107,48 @@ def get_graph_data(source_id: int, db: Session = Depends(get_db)):
         
         keywords.append(kw_schema)
 
-    #TODO: Insert ChunkIDs into the keywords returned.
-    # Return the graph data in a format that the frontend can use
+    # return the graph data in a format that the frontend can use
     return {"chunks": chunks, "keywords": keywords}
 
+@app.get("/sources/{source_id}/summary/{keyword_id}}")
+def get_summary_by_keyword(source_id: int, keyword_id: int, db: Session = Depends(get_db)):
+    # get chunks and keywords from the database
+    db_keyword = crud.get_keyword_by_id(db=db, source_id=source_id, keyword_id=keyword_id)
+    if not db_keyword:
+        raise HTTPException(status_code=404, detail="no keywords found for this source")
+    db_summary = crud.get_summary_by_keyword(db=db, source_id=source_id, keyword_id=keyword_id)
+    if not db_summary:
+        db_chunks = crud.get_chunks_by_keyword(db = db, source_id = source_id, keyword_id = db_keyword.ID)
+        summary=summarize.summarize_keyword_significance(keyword = db_keyword.KEYWORD, chunks = db_chunks)
+    else:
+        summary = db_summary.SUMMARY_TEXT
+    return {"keyword": db_keyword, "summary": summary}
 
+
+@app.get("/sources/{source_id}/summary_zip")
+def get_summaries_by_source(source_id: int, db: Session = Depends(get_db)):
+    # get chunks and keywords from the database
+    db_keywords = crud.get_keywords_by_source(db=db, source_id=source_id)
+    if not db_keywords:
+        raise HTTPException(status_code=404, detail="no keywords found for this source")
+    # create an in-memory byte stream for the zip file
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+        for kw in db_keywords:
+            db_chunks = crud.get_chunks_by_keyword(db = db, source_id = source_id, keyword_id = kw.id)
+            summary=summarize.summarize_keyword_significance(keyword = kw.keyword, chunks = db_chunks)
+        # this logic assumes you want to wrap existing keyword mentions in the text
+            for other_kw in db_keywords:
+                # Wrap keyword in brackets: keyword -> [[keyword]]
+                processed_summary = summary.replace(other_kw.KEYWORD, f"[[{other_kw.KEYWORD}]]")
+            # 2. Add the file to the zip
+            file_name = f"{kw.KEYWORD}.md"
+            zip_file.writestr(file_name, processed_summary)
+
+    # Rewind the buffer to the beginning so it can be read
+    zip_buffer.seek(0)
+    return StreamingResponse(
+        zip_buffer, 
+        media_type="application/x-zip-compressed",
+        headers={"Content-Disposition": f"attachment; filename=source_{source_id}_summaries.zip"}
+    )

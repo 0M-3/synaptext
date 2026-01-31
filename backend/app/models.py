@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey 
+from sqlalchemy import Column, Integer, String, ForeignKey, Text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
 
@@ -36,4 +36,12 @@ class Junction(Base):
     SOURCE_ID = Column(Integer, ForeignKey("SOURCES.ID", ondelete="CASCADE"), nullable=False)
     CHUNK_ID = Column(Integer, ForeignKey("CHUNKS.ID", ondelete="CASCADE"), nullable=False)
     KEYWORD_ID = Column(Integer, ForeignKey("KEYWORDS.ID", ondelete="CASCADE"), nullable=False)
+    ETL_CREATED_TIME = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+
+class Summary(Base):
+    __tablename__ = "SUMMARIES"
+    ID = Column(Integer, primary_key = True, nullable = False)
+    SOURCE_ID = Column(Integer, ForeignKey("SOURCES.ID", ondelete="CASCADE"), nullable=False)
+    KEYWORD_ID = Column(Integer, ForeignKey("KEYWORDS.ID", ondelete="CASCADE"), nullable=False)
+    SUMMARY_TEXT = Column(Text, nullable = False)
     ETL_CREATED_TIME = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
