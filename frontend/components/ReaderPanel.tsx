@@ -1,14 +1,16 @@
 
 import React from 'react';
-import { Chunk, GraphData, NodeType } from '../types';
+import { Chunk, GraphData, NodeType, Keyword } from '../types';
 
 interface ReaderPanelProps {
   chunks: Chunk[];
   graph: GraphData;
   selectedNodeId: string | null;
+  selectedKeyword: Keyword | null;
+  summary: string | null;
 }
 
-const ReaderPanel: React.FC<ReaderPanelProps> = ({ chunks, graph, selectedNodeId }) => {
+const ReaderPanel: React.FC<ReaderPanelProps> = ({ chunks, graph, selectedNodeId, selectedKeyword, summary }) => {
   // Determine which chunk IDs to highlight
   const highlightedChunkIds = React.useMemo(() => {
     if (!selectedNodeId) return [];
@@ -40,6 +42,12 @@ const ReaderPanel: React.FC<ReaderPanelProps> = ({ chunks, graph, selectedNodeId
         <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Synchronized Reader</h2>
       </div>
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {summary && selectedKeyword && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="text-lg font-bold text-blue-800">{selectedKeyword.keyword}</h3>
+            <p className="text-sm text-blue-700 mt-2">{summary}</p>
+          </div>
+        )}
         {chunks.length === 0 ? (
           <div className="text-center text-slate-400 mt-20">
             <p className="italic">No document ingested yet.</p>

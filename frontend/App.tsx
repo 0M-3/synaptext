@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
-import { DocumentState, GraphNode, Chunk, GraphData } from './types';
-import { uploadPdf } from './services/apiService';
+import { DocumentState, GraphNode, Chunk, GraphData, Keyword, NodeType } from './types';
+import { uploadPdf, getSummary, downloadSummaries } from './services/apiService';
 import { buildGraph } from './services/graphUtils';
 import GraphView from './components/GraphView';
 import ReaderPanel from './components/ReaderPanel';
@@ -9,6 +9,8 @@ import ReaderPanel from './components/ReaderPanel';
 const App: React.FC = () => {
   const [docState, setDocState] = useState<DocumentState | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedKeyword, setSelectedKeyword] = useState<Keyword | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processStep, setProcessStep] = useState<string>('');
@@ -20,6 +22,8 @@ const App: React.FC = () => {
     setIsProcessing(true);
     setError(null);
     setSelectedNodeId(null);
+    setSummary(null);
+    setSelectedKeyword(null);
     setProcessStep('Uploading and processing file...');
 
     try {
@@ -46,13 +50,35 @@ const App: React.FC = () => {
     }
   };
 
-  const onNodeClick = useCallback((node: GraphNode) => {
+  const onNodeClick = useCallback(async (node: GraphNode) => {
     setSelectedNodeId(node.id);
-    if (node.id.startsWith('c-')) {
+    setSummary(null);
+    setSelectedKeyword(null);
+
+    if (node.type === NodeType.CHUNK) {
         const element = document.getElementById(`chunk-${node.id}`);
         element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (node.type === NodeType.TOPIC && docState) {
+      try {
+        const summaryResponse = await getSummary(docState.id, node.id);
+        setSummary(summaryResponse.summary);
+        setSelectedKeyword(summaryResponse.keyword);
+      } catch (err: any) {
+        console.error("Failed to get summary:", err);
+        setError("Failed to load summary for this topic.");
+      }
     }
-  }, []);
+  }, [docState]);
+
+  const handleDownloadSummaries = async () => {
+    if (!docState) return;
+    try {
+      await downloadSummaries(docState.id);
+    } catch (err: any) {
+      console.error("Failed to download summaries:", err);
+      setError("Failed to download summaries.");
+    }
+  };
 
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden">
@@ -121,6 +147,12 @@ const App: React.FC = () => {
                       <p className="text-[8px] text-slate-500 uppercase">Resolved</p>
                     </div>
                   </div>
+                  <button 
+                    onClick={handleDownloadSummaries}
+                    className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-xs"
+                  >
+                    Download Summaries
+                  </button>
                 </div>
               </div>
             </div>
@@ -178,6 +210,8 @@ const App: React.FC = () => {
               chunks={docState?.chunks || []} 
               graph={docState?.graph || { nodes: [], links: [] }}
               selectedNodeId={selectedNodeId}
+              selectedKeyword={selectedKeyword}
+              summary={summary}
             />
           </div>
         </div>
