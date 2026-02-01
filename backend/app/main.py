@@ -110,7 +110,7 @@ def get_graph_data(source_id: int, db: Session = Depends(get_db)):
     # return the graph data in a format that the frontend can use
     return {"chunks": chunks, "keywords": keywords}
 
-@app.get("/sources/{source_id}/summary/{keyword_id}}")
+@app.get("/sources/{source_id}/summary/{keyword_id}")
 def get_summary_by_keyword(source_id: int, keyword_id: int, db: Session = Depends(get_db)):
     # get chunks and keywords from the database
     db_keyword = crud.get_keyword_by_id(db=db, source_id=source_id, keyword_id=keyword_id)
@@ -135,12 +135,13 @@ def get_summaries_by_source(source_id: int, db: Session = Depends(get_db)):
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
         for kw in db_keywords:
-            db_chunks = crud.get_chunks_by_keyword(db = db, source_id = source_id, keyword_id = kw.id)
-            summary=summarize.summarize_keyword_significance(keyword = kw.keyword, chunks = db_chunks)
-        # this logic assumes you want to wrap existing keyword mentions in the text
+            db_chunks = crud.get_chunks_by_keyword(db = db, source_id = source_id, keyword_id = kw.ID)
+            summary=summarize.summarize_keyword_significance(keyword = kw.KEYWORD, chunks = db_chunks)
+            processed_summary = summary
+            # this logic assumes you want to wrap existing keyword mentions in the text
             for other_kw in db_keywords:
                 # Wrap keyword in brackets: keyword -> [[keyword]]
-                processed_summary = summary.replace(other_kw.KEYWORD, f"[[{other_kw.KEYWORD}]]")
+                processed_summary = processed_summary.replace(other_kw.KEYWORD, f"[[{other_kw.KEYWORD}]]")
             # 2. Add the file to the zip
             file_name = f"{kw.KEYWORD}.md"
             zip_file.writestr(file_name, processed_summary)

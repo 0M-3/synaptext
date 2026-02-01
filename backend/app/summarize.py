@@ -18,11 +18,12 @@ def summarize_keyword_significance(keyword: str, chunks: list):
         "Only output the summary. If keyword is missing, say 'Keyword not found in context.'"
         "Ensure the summary is made in Markdown format beginning the summary with the Keyword as the heading."
     )
-    user_prompt = f"KEYWORD: {keyword}\n\nCHUNKS:\n" + "\n---\n".join(chunks.CHUNK_TEXT)
+    user_prompt = f"KEYWORD: {keyword}\n\nCHUNKS:\n" + "\n---\n".join([c.CHUNK_TEXT for c in chunks])
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            # model="gemini-2.0-flash",
+            model = "gemini-2.5-flash-lite",
             config=types.GenerateContentConfig(
                 system_instruction=system_instr,
                 temperature=0.0  # Zero temperature for maximum deterministic focus

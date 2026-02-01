@@ -29,7 +29,8 @@ export function buildGraph(chunks: Chunk[], keywords: Keyword[]): GraphData {
 
   // Add Topic Nodes
   keywords.forEach((keyword) => {
-    const topicId = `topic-${keyword.keyword.toLowerCase().replace(/\s+/g, "-")}`;
+    // const topicId = `topic-${keyword.keyword.toLowerCase().replace(/\s+/g, "-")}`;
+    const topicId = keyword.id;
 
     // Calculate importance based on number of chunks it connects to (Degree Centrality)
     const weight = 5 + keyword.instances * 2;

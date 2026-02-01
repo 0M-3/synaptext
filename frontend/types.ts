@@ -43,6 +43,11 @@ export interface Keyword {
   chunkids: string[];
 }
 
+export interface SummaryResponse {
+  keyword: Keyword;
+  summary: string;
+}
+
 export interface GraphData {
   nodes: GraphNode[];
   links: GraphLink[];
